@@ -1,14 +1,20 @@
-# itrust
+# About app
 
-This template should help get you started developing with Vue 3 in Vite.
+The application allows you to view the past (5 days) weather, present and future (2 days) weather for the location or city selected by the user.
 
-## Recommended IDE Setup
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+In the main view, the user can select a location or city and see the weather for it (at least the temperature, whether it is sunny, rainfall).
 
-## Customize configuration
+The user can create an account (by e-mail / login and password). After logging in, the user has an additional view where he can select and save his favorite city.
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+## Technologies
+* Vue 3
+* Pinia
+* Axios
+* Firebase
+
+## API
+* Openweathermap
 
 ## Project Setup
 
@@ -32,10 +38,4 @@ npm run build
 
 ```sh
 npm run test:unit
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
 ```
