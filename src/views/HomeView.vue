@@ -1,5 +1,11 @@
 <template>
-  <main>
-    test
-  </main>
+  <div>
+      Home
+  </div>
 </template>
+<script>
+
+export default {
+  name: "Home",
+};
+</script>

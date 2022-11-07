@@ -17,6 +17,7 @@ The user can create an account (by e-mail / login and password). After logging i
 * Openweathermap
 
 ## Project Setup
+To run project you need .env file with API KEYS & Firebase KEY
 
 ```sh
 npm install
