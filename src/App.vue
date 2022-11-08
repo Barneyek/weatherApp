@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex items-center flex-col bg-regal-blue font-['Roboto'] min-h-screen"
+    class="relative flex items-center flex-col bg-regal-blue font-['Roboto'] min-h-screen"
   >
     <search-city @searchCity="searchCity" />
     <template v-if="!loading">
@@ -20,14 +20,37 @@
       <spinner />
     </div>
   </div>
+  <a
+    v-if="!userStore.userLoggedIn"
+    class="absolute top-6 right-10 bg-white px-4 py-2 rounded-md text-regal-blue font-bold transition-bg ease-in-out duration-300 hover:bg-light hover:text-white"
+    href="#"
+    @click.prevent="toggleAuthModal"
+  >
+    Login / Register
+  </a>
+  <a
+    v-else
+    class="absolute top-6 right-10 bg-white px-4 py-2 rounded-md text-regal-blue font-bold transition-bg ease-in-out duration-300 hover:bg-light hover:text-white"
+    href="#"
+    @click.prevent="userStore.signOut"
+  >
+    Logout
+  </a>
+  <auth />
 </template>
+
 <script>
+import { mapStores, mapWritableState } from "pinia";
+import UseModalStore from "@/stores/modal";
 import axios from "axios";
 import SearchCity from "@/components/SearchCity.vue";
 import Forecast from "@/components/Forecast.vue";
 import Spinner from "@/components/Spinner.vue";
+import Auth from "@/components/Auth.vue";
 import CurrentWeather from "@/components/CurrentWeather.vue";
-import db from "./firebase/firebaseInit";
+// import db from "./firebase/firebaseInit";
+import useUserStore from "@/stores/user";
+import { auth } from "./firebase/firebaseInit";
 
 export default {
   name: "App",
@@ -35,6 +58,7 @@ export default {
     SearchCity,
     Forecast,
     Spinner,
+    Auth,
     CurrentWeather,
   },
   data() {
@@ -49,6 +73,15 @@ export default {
       loading: false,
     };
   },
+  computed: {
+    ...mapStores(UseModalStore, useUserStore),
+    ...mapWritableState(useUserStore, ["userLoggedIn"]),
+  },
+  created() {
+    if (auth.currentUser) {
+      this.userLoggedIn = true;
+    }
+  },
   methods: {
     async searchCity(value) {
       this.city = value;
@@ -56,37 +89,40 @@ export default {
       this.getCurrentWeatherData();
       this.getFutureCityWeather();
     },
+    toggleAuthModal() {
+      this.modalStore.isOpen = !this.modalStore.isOpen;
+    },
     getSavedCityWeather() {
-      let firebaseDB = db.collection("cities");
-      firebaseDB.onSnapshot((snap) => {
-        snap.docChanges().forEach(async (doc) => {
-          if (doc.type === "added") {
-            try {
-              const response = await axios.get(
-                `https://api.openweathermap.org/data/2.5/weather?q=${this.city}&appid=${this.API_Key}&units=metric`
-              );
-              const data = response.data;
-
-              let currentDate = new Date();
-              let weatherDate = currentDate.toLocaleDateString(
-                "en-us",
-                this.dateOptions
-              );
-              firebaseDB
-                .doc(doc.doc.id)
-                .update({
-                  currentWeather: data,
-                  weatherDate: weatherDate,
-                })
-                .then(() => {
-                  this.cities.push(doc.doc.data());
-                });
-            } catch (error) {
-              console.log(error);
-            }
-          }
-        });
-      });
+      // let firebaseDB = db.collection("cities");
+      // firebaseDB.onSnapshot((snap) => {
+      //   snap.docChanges().forEach(async (doc) => {
+      //     if (doc.type === "added") {
+      //       try {
+      //         const response = await axios.get(
+      //           `https://api.openweathermap.org/data/2.5/weather?q=${this.city}&appid=${this.API_Key}&units=metric`
+      //         );
+      //         const data = response.data;
+      //
+      //         let currentDate = new Date();
+      //         let weatherDate = currentDate.toLocaleDateString(
+      //           "en-us",
+      //           this.dateOptions
+      //         );
+      //         firebaseDB
+      //           .doc(doc.doc.id)
+      //           .update({
+      //             currentWeather: data,
+      //             weatherDate: weatherDate,
+      //           })
+      //           .then(() => {
+      //             this.cities.push(doc.doc.data());
+      //           });
+      //       } catch (error) {
+      //         console.log(error);
+      //       }
+      //     }
+      //   });
+      // });
     },
     async getLocationParameters() {
       await axios
