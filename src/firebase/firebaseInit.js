@@ -1,7 +1,6 @@
 import firebase from "firebase/app";
 import "firebase/auth";
 import "firebase/firestore";
-import "firebase/storage";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_CONFIG,
@@ -17,9 +16,6 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 const usersCollection = db.collection("users");
+const savedCityCollection = db.collection("cities");
 
-export {
-  auth,
-  db,
-  usersCollection
-};
+export { auth, db, usersCollection, savedCityCollection };

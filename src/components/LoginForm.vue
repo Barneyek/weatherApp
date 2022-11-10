@@ -61,11 +61,9 @@ export default {
       this.login_show_alert = true;
       this.login_in_submission = true;
       this.login_alert_variant = "bg-blue-500";
-      this.login_alert_msg =
-        "Ops. There was a problem, please try again later.";
+      this.login_alert_msg = "Please wait! Your account is being logged in";
       try {
         await this.authenticate(values);
-        console.log(values);
       } catch (error) {
         this.login_in_submission = false;
         this.login_alert_variant = "bg-red-500";
@@ -73,8 +71,9 @@ export default {
         return;
       }
       this.login_alert_variant = "bg-green-500";
-      this.login_alert_msg = "Please wait! Your account is being logged in.";
+      this.login_alert_msg = "Logged in";
       window.location.reload();
+      this.$router.push({ name: "manage" });
     },
   },
 };

@@ -89,7 +89,6 @@ export default {
       this.reg_in_submission = true;
       this.reg_alert_variant = "bg-blue-500";
       this.reg_alert_msg = "Please wait! Your account is under registration.";
-      console.log(values);
       try {
         await this.createUser(values);
       } catch (error) {
