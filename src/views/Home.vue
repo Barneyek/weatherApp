@@ -12,21 +12,25 @@
         :index="i"
       />
     </div>
-    <div
-      v-if="msg_show"
-      class="text-white text-center font-bold p-4 rounded mb-4"
-      :class="msg_variant"
-    >
-      <i class="fas fa-check mr-1"></i>
-      {{ msg }}
+    <div class="relative flex flex-col items-center">
+      <transition name="fade" mode="out-in">
+        <div
+          v-if="msg_show"
+          class="absolute top-0 text-white text-center font-bold px-4 py-1.5 rounded min-w-[220px] rounded"
+          :class="msg_variant"
+        >
+          <i class="fas fa-check mr-1"></i>
+          {{ msg }}
+        </div>
+      </transition>
+      <button
+        v-if="userStore.userLoggedIn && started"
+        class="mt-10 bg-white px-4 py-2 rounded-md text-regal-blue font-bold transition-bg ease-in-out duration-300 hover:bg-light hover:text-white"
+        @click="saveCityWeather"
+      >
+        Zapisz miasto
+      </button>
     </div>
-    <button
-      v-if="userStore.userLoggedIn && started"
-      class="mt-6 bg-white px-4 py-2 rounded-md text-regal-blue font-bold transition-bg ease-in-out duration-300 hover:bg-light hover:text-white"
-      @click="saveCityWeather"
-    >
-      Zapisz miasto
-    </button>
   </template>
   <div v-if="loading" class="flex justify-center w-full">
     <spinner />
@@ -65,7 +69,7 @@ export default {
       started: false,
       msg: "",
       msg_show: false,
-      msg_variant: "bg-blue-500",
+      msg_variant: "bg-green-500",
       shouldSkip: false,
     };
   },
@@ -137,21 +141,19 @@ export default {
     },
     async saveCityWeather() {
       this.msg_show = true;
-      let flag = 1;
+      let updateWeatherFlag = 1;
       let currentDate = new Date();
       let weatherDate = currentDate.toLocaleDateString(
         "en-us",
         this.dateOptions
       );
-
       const snapshot = await savedCityCollection
         .where("uid", "==", auth.currentUser.uid)
         .get();
       if (snapshot.size === 0) {
-        flag = 1;
+        updateWeatherFlag = 1;
       } else {
         snapshot.forEach((document) => {
-          console.log(document);
           if (document.data().city === this.city) {
             this.shouldSkip = true;
             savedCityCollection.doc(document.id).update({
@@ -159,12 +161,12 @@ export default {
               currentWeather: this.weather,
               forecast: this.forecasts,
             });
-            flag = 0;
+            updateWeatherFlag = 0;
             this.msg = "City weather updated.";
           }
         });
       }
-      if (flag === 1) {
+      if (updateWeatherFlag === 1) {
         try {
           await savedCityCollection.add({
             uid: auth.currentUser.uid,
@@ -180,10 +182,24 @@ export default {
             "There was a problem with the save, please try again later";
           return;
         }
-        flag = 0;
+        updateWeatherFlag = 0;
       }
       setTimeout(() => (this.msg_show = false), 2000);
     },
   },
 };
 </script>
+<style>
+.fade-enter-from {
+  opacity: 0;
+}
+
+.fade-enter-active {
+  transition: all 0.3s ease-in-out;
+}
+
+.fade-leave-to {
+  transition: all 0.3s ease-in-out;
+  opacity: 0;
+}
+</style>
