@@ -13,7 +13,9 @@
       />
     </div>
     <div
-      class="text-white text-center font-bold p-4 rounded mb-4 bg-blue-500"
+      v-if="msg_show"
+      class="text-white text-center font-bold p-4 rounded mb-4"
+      :class="msg_variant"
     >
       <i class="fas fa-check mr-1"></i>
       {{ msg }}
@@ -22,6 +24,7 @@
       v-if="userStore.userLoggedIn && started"
       class="mt-6 bg-white px-4 py-2 rounded-md text-regal-blue font-bold transition-bg ease-in-out duration-300 hover:bg-light hover:text-white"
       @click="saveCityWeather"
+    >
       Zapisz miasto
     </button>
   </template>
@@ -39,7 +42,7 @@ import axios from "axios";
 import { mapStores, mapWritableState } from "pinia";
 import UseModalStore from "@/stores/modal";
 import useUserStore from "@/stores/user";
-import { savedCityCollection, auth } from "@/firebase/firebaseInit";
+import { savedCityCollection, auth, db } from "@/firebase/firebaseInit";
 
 export default {
   name: "Home",
@@ -60,7 +63,10 @@ export default {
       lon: 0,
       loading: false,
       started: false,
-      msg: "Saved",
+      msg: "",
+      msg_show: false,
+      msg_variant: "bg-blue-500",
+      shouldSkip: false,
     };
   },
   computed: {
@@ -130,42 +136,53 @@ export default {
       }
     },
     async saveCityWeather() {
-      let flag = 0;
+      this.msg_show = true;
+      let flag = 1;
       let currentDate = new Date();
       let weatherDate = currentDate.toLocaleDateString(
         "en-us",
         this.dateOptions
       );
+
       const snapshot = await savedCityCollection
         .where("uid", "==", auth.currentUser.uid)
         .get();
-      let shouldSkip = false;
-      snapshot.forEach((document) => {
-        if (shouldSkip) {
-          return;
-        }
-        if (document.data().city === this.city) {
-          savedCityCollection.doc(document.id).update({
-            weatherDate: weatherDate,
+      if (snapshot.size === 0) {
+        flag = 1;
+      } else {
+        snapshot.forEach((document) => {
+          console.log(document);
+          if (document.data().city === this.city) {
+            this.shouldSkip = true;
+            savedCityCollection.doc(document.id).update({
+              weatherDate: weatherDate,
+              currentWeather: this.weather,
+              forecast: this.forecasts,
+            });
+            flag = 0;
+            this.msg = "City weather updated.";
+          }
+        });
+      }
+      if (flag === 1) {
+        try {
+          await savedCityCollection.add({
+            uid: auth.currentUser.uid,
+            city: this.city,
             currentWeather: this.weather,
             forecast: this.forecasts,
           });
-          shouldSkip = true;
-          this.msg = "City weather updated.";
+          this.msg = "City weather saved.";
+        } catch (error) {
+          console.log(error);
+          this.msg_variant = "bg-red-500";
+          this.msg =
+            "There was a problem with the save, please try again later";
           return;
-        } else {
-          flag = 1
         }
-      });
-      if (flag === 1) {
-        await savedCityCollection.add({
-          uid: auth.currentUser.uid,
-          city: this.city,
-          currentWeather: this.weather,
-          forecast: this.forecasts,
-        });
-        this.msg = "City weather saved.";
+        flag = 0;
       }
+      setTimeout(() => (this.msg_show = false), 2000);
     },
   },
 };
